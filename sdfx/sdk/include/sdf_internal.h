@@ -58,6 +58,9 @@ LONG sdf_get_server_agreement_id(HANDLE hAgreementHandle,
  * @return SDF error code
  */
 LONG sdf_validate_session_and_get_id(HANDLE hSessionHandle, sdfx_remote_handle_t *server_session_id);
+/* 6.8 stateless debug APIs use a private session for their remote request. */
+LONG sdf_open_temporary_session(HANDLE *device, HANDLE *session);
+LONG sdf_close_temporary_session(HANDLE device, HANDLE session, LONG result);
 
 /**
  * @brief Module initialization function type

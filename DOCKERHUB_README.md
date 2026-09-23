@@ -20,7 +20,7 @@ CryptoKit SoftHSM 是一套基于 SDFX 和 openHiTLS 的软件密码设备模拟
 镜像仓库为 `sawanolin/cryptokit-soft-hsm`：
 
 ```bash
-docker pull sawanolin/cryptokit-soft-hsm:1.1.4
+docker pull sawanolin/cryptokit-soft-hsm:1.1.5
 
 docker run -d \
   --name cryptokit-soft-hsm \
@@ -29,7 +29,7 @@ docker run -d \
   -v cryptokit-sdfx-data:/var/lib/sdfx \
   --restart unless-stopped \
   --security-opt no-new-privileges:true \
-  sawanolin/cryptokit-soft-hsm:1.1.4
+  sawanolin/cryptokit-soft-hsm:1.1.5
 ```
 
 打开：
@@ -45,7 +45,7 @@ http://ip:18080
 ```yaml
 services:
   softhsm:
-    image: sawanolin/cryptokit-soft-hsm:1.1.4
+    image: sawanolin/cryptokit-soft-hsm:1.1.5
     ports:
       - "0.0.0.0:18081:18081"
       - "0.0.0.0:18080:18080"
@@ -72,7 +72,7 @@ docker compose ps
 
 | 标签     | 含义                           |
 | -------- | ------------------------------ |
-| `1.1.4`  | 固定版本，部署时推荐           |
+| `1.1.5`  | 固定版本，部署时推荐           |
 | `latest` | 最新稳定版本，可能随新版本移动 |
 
 当前已经实际构建和验证的平台为：
@@ -113,7 +113,7 @@ linux/amd64
 - 审计日志支持时间段、级别、类型、结果、管理员、操作、来源、请求号、路径和关键字组合筛选，可按字段导出 TXT、CSV 或 JSONL；SDF 调用失败记录为 `ERROR / sdf`；
 - 备份、恢复、上传、下载和完全重置。
 
-1.1.4 的公开算法标识按 GM/T 0006-2023 对齐：SM2 签名、密钥交换、加密
+1.1.5 的公开算法标识按 GM/T 0006-2023 对齐：SM2 签名、密钥交换、加密
 分别为 `0x00020200`、`0x00020400`、`0x00020800`，SM4-XTS 为
 `0x01000400`。SHA-1/224/384/512 教学扩展使用 `SDFX_*` 自定义标识，
 不再占用非标准的 `2/3/5/6`。
@@ -188,7 +188,7 @@ docker volume rm cryptokit-sdfx-data
 建议固定版本标签，并在更新前备份：
 
 ```bash
-docker pull sawanolin/cryptokit-soft-hsm:1.1.4
+docker pull sawanolin/cryptokit-soft-hsm:1.1.5
 docker stop cryptokit-soft-hsm
 docker rm cryptokit-soft-hsm
 ```

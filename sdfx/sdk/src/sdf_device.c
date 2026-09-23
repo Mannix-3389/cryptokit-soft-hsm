@@ -22,6 +22,29 @@ void sdf_device_cleanup(void)
     /* Clean up device management related resources */
 }
 
+LONG sdf_open_temporary_session(HANDLE *device, HANDLE *session)
+{
+    if (device == NULL || session == NULL) return SDR_INARGERR;
+    *device = NULL;
+    *session = NULL;
+    LONG ret = SDF_OpenDevice(device);
+    if (ret != SDR_OK) return ret;
+    ret = SDF_OpenSession(*device, session);
+    if (ret != SDR_OK) {
+        SDF_CloseDevice(*device);
+        *device = NULL;
+    }
+    return ret;
+}
+
+LONG sdf_close_temporary_session(HANDLE device, HANDLE session, LONG result)
+{
+    LONG session_ret = SDF_CloseSession(session);
+    LONG device_ret = SDF_CloseDevice(device);
+    if (result != SDR_OK) return result;
+    return session_ret != SDR_OK ? session_ret : device_ret;
+}
+
 LONG SDF_OpenDevice(HANDLE *phDeviceHandle)
 {
     sdfx_open_device_req_t req;

@@ -13,8 +13,8 @@ int main(void)
     ULONG length,cipher_len=sizeof(cipher),decoded_len=sizeof(decoded);
     representative[sizeof(representative)-1]=0x2a;
     CHECK(SDF_OpenDevice(&device));CHECK(SDF_OpenSession(device,&session));
-    CHECK(SDF_GenerateKeyPair_RSA(session,2048,&public_key,&private_key));
-    length=sizeof(signature);CHECK(SDF_ExternalPrivateKeyOperation_RSA(session,&private_key,representative,sizeof(representative),signature,&length));
+    CHECK(SDF_GenerateKeyPair_RSA(2048,&public_key,&private_key));
+    length=sizeof(signature);CHECK(SDF_ExternalPrivateKeyOperation_RSA(&private_key,representative,sizeof(representative),signature,&length));
     if(length!=sizeof(signature)){result=SDR_KEYERR;goto cleanup;}
     length=sizeof(recovered);CHECK(SDF_ExternalPublicKeyOperation_RSA(session,&public_key,signature,sizeof(signature),recovered,&length));
     if(length!=sizeof(representative)||memcmp(representative,recovered,sizeof(representative))!=0){fprintf(stderr,"external RSA round-trip mismatch\n");result=SDR_VERIFYERR;goto cleanup;}

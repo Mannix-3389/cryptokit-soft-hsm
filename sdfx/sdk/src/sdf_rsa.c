@@ -129,17 +129,31 @@ LONG SDF_InternalPublicKeyOperation_RSA(HANDLE s,ULONG index,BYTE *in,ULONG in_l
 {return index==0?SDR_INARGERR:rsa_operation(s,SDFX_CMD_INTERNAL_PUBLIC_RSA,index,NULL,0,in,in_len,out,out_len);}
 LONG SDF_InternalPrivateKeyOperation_RSA(HANDLE s,ULONG index,BYTE *in,ULONG in_len,BYTE *out,ULONG *out_len)
 {return index==0?SDR_INARGERR:rsa_operation(s,SDFX_CMD_INTERNAL_PRIVATE_RSA,index,NULL,0,in,in_len,out,out_len);}
-LONG SDF_ExternalPrivateKeyOperation_RSA(HANDLE s,RSArefPrivateKey *k,BYTE *in,ULONG in_len,BYTE *out,ULONG *out_len)
-{return k==NULL?SDR_INARGERR:rsa_operation(s,SDFX_CMD_EXTERNAL_PRIVATE_RSA,0,(BYTE *)k,sizeof(*k),in,in_len,out,out_len);}
+LONG SDF_ExternalPrivateKeyOperation_RSA(RSArefPrivateKey *k,BYTE *in,ULONG in_len,BYTE *out,ULONG *out_len)
+{
+    if (k == NULL || in == NULL || out == NULL || out_len == NULL) return SDR_INARGERR;
+    HANDLE device, session;
+    LONG ret = sdf_open_temporary_session(&device, &session);
+    if (ret != SDR_OK) return ret;
+    ret = rsa_operation(session,SDFX_CMD_EXTERNAL_PRIVATE_RSA,0,(BYTE *)k,sizeof(*k),in,in_len,out,out_len);
+    return sdf_close_temporary_session(device, session, ret);
+}
 
-LONG SDF_GenerateKeyPair_RSA(HANDLE hSessionHandle,ULONG uiKeyBits,
+LONG SDF_GenerateKeyPair_RSA(ULONG uiKeyBits,
     RSArefPublicKey *pucPublicKey,RSArefPrivateKey *pucPrivateKey)
 {
-    if(hSessionHandle==NULL||uiKeyBits<1024||uiKeyBits>RSAref_MAX_BITS||(uiKeyBits%256)!=0||pucPublicKey==NULL||pucPrivateKey==NULL)return SDR_INARGERR;
-    sdfx_remote_handle_t sid;SDF_CHECK_SESSION(hSessionHandle,sid);uint32_t params[4]={uiKeyBits,0,0,0};
+    if(uiKeyBits<1024||uiKeyBits>RSAref_MAX_BITS||(uiKeyBits%256)!=0||pucPublicKey==NULL||pucPrivateKey==NULL)return SDR_INARGERR;
+    HANDLE device, session;
+    LONG ret = sdf_open_temporary_session(&device, &session);
+    if (ret != SDR_OK) return ret;
+    sdfx_remote_handle_t sid;
+    ret = sdf_validate_session_and_get_id(session, &sid);
+    if (ret != SDR_OK) return sdf_close_temporary_session(device, session, ret);
+    uint32_t params[4]={uiKeyBits,0,0,0};
     BYTE response[sizeof(sdfx_message_header_t)+sizeof(sdfx_blob_resp_t)+sizeof(RSArefPublicKey)+sizeof(RSArefPrivateKey)];size_t response_len=0;
-    LONG ret=send_rsa_blob(SDFX_CMD_GENERATE_KEYPAIR_RSA,sid,params,NULL,0,response,sizeof(response),&response_len);
+    ret=send_rsa_blob(SDFX_CMD_GENERATE_KEYPAIR_RSA,sid,params,NULL,0,response,sizeof(response),&response_len);
     const BYTE *data;uint32_t length;if(ret==SDR_OK)ret=rsa_blob_payload(response,response_len,&data,&length,NULL);
     if(ret==SDR_OK&&length!=sizeof(*pucPublicKey)+sizeof(*pucPrivateKey))ret=SDR_PROTOCOL_ERROR;
-    if(ret==SDR_OK){memcpy(pucPublicKey,data,sizeof(*pucPublicKey));memcpy(pucPrivateKey,data+sizeof(*pucPublicKey),sizeof(*pucPrivateKey));}return ret;
+    if(ret==SDR_OK){memcpy(pucPublicKey,data,sizeof(*pucPublicKey));memcpy(pucPrivateKey,data+sizeof(*pucPublicKey),sizeof(*pucPrivateKey));}
+    return sdf_close_temporary_session(device, session, ret);
 }

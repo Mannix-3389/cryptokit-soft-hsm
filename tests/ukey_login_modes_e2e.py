@@ -1,6 +1,6 @@
 """Opt-in Web end-to-end check for both administrator login modes.
 
-Requires a fresh 1.1.4 Web container, a running local UKey Agent, and the same
+Requires a fresh 1.1.5 Web container, a running local UKey Agent, and the same
 UKEY_TEST_PIN/UKEY_CERT_DIR environment variables as ukey_auth_integration.py.
 No PIN or certificate content is printed or persisted by this script.
 """

@@ -124,7 +124,7 @@ const encryptCertificate = await UKeyAgent.exportCertificate({
 Windows 不能让 64 位进程直接加载 32 位 DLL，也不能直接从内存启动嵌入的 EXE。因此运行时会把两个 helper 静默释放到：
 
 ```text
-%LOCALAPPDATA%\CryptoKit\UKeyAgent\1.1.4
+%LOCALAPPDATA%\CryptoKit\UKeyAgent\1.1.5
 ```
 
 释放的文件带隐藏属性，用户下载、复制和发布时只需要主 EXE。

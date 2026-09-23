@@ -337,14 +337,12 @@ int SDF_DecryptWithISK_SM9(
 }
 
 int SDF_ExternalSign_SM9(
-    HANDLE hSessionHandle,
     SM9SignMasterPublicKey *pSignMastPublicKey,
     SM9SignUserPrivateKey *pSignUserPrivateKey,
     BYTE *pucData,
     ULONG uiDataLength,
     SM9Signature *pSignature)
 {
-    (void)hSessionHandle;
     (void)pSignMastPublicKey;
     (void)pSignUserPrivateKey;
     (void)pucData;
@@ -356,25 +354,21 @@ int SDF_ExternalSign_SM9(
 }
 
 int SDF_ExternalDecrypt_SM9(
-    HANDLE hSessionHandle,
     SM9EncUserPrivateKey *pEncUserPrivateKey,
     BYTE *pucUserID,
     ULONG uiUserIDLen,
-    ULONG uiAlgID,
     BYTE *pucIV,
-    SM9Cipher *pEncData,
     BYTE *pucData,
-    ULONG *puiDataLength)
+    ULONG uiDataLength,
+    SM9Cipher *pEncData)
 {
-    (void)hSessionHandle;
     (void)pEncUserPrivateKey;
     (void)pucUserID;
     (void)uiUserIDLen;
-    (void)uiAlgID;
     (void)pucIV;
-    (void)pEncData;
     (void)pucData;
-    (void)puiDataLength;
+    (void)uiDataLength;
+    (void)pEncData;
 
     fprintf(stderr, "[STUB] SDF_ExternalDecrypt_SM9 not implemented\n");
     return SDR_NOTSUPPORT;

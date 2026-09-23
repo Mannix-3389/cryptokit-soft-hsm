@@ -27,8 +27,20 @@ if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoUnix)) {
     throw "Failed to convert the repository path for MSYS2."
 }
 $toolchainUnix = "$repoUnix/sdfx/cmake/toolchains/mingw-x64.cmake"
-$buildCommand = "export PATH=/ucrt64/bin:/usr/bin:`$PATH; cd '$repoUnix'; cmake -S sdfx -B build/sdfx-windows-min -G 'Unix Makefiles' -DCMAKE_MAKE_PROGRAM=/usr/bin/make.exe -DCMAKE_TOOLCHAIN_FILE='$toolchainUnix' -DSDFX_TRANSPORT_TYPE=tcp -DBUILD_DAEMON=OFF -DBUILD_SDK=ON -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release && cmake --build build/sdfx-windows-min --target sdfx_sdk -j2"
-& $bash -lc $buildCommand
+$buildTemp = Join-Path $buildRoot "tmp"
+New-Item -ItemType Directory -Force -Path $buildTemp | Out-Null
+$oldTmp = $env:TMP
+$oldTemp = $env:TEMP
+$env:TMP = $buildTemp
+$env:TEMP = $buildTemp
+$gccTemp = $buildTemp.Replace('\', '/')
+$buildCommand = "export PATH=/ucrt64/bin:/usr/bin:`$PATH; export TMPDIR='$gccTemp' TEMP='$gccTemp' TMP='$gccTemp'; cd '$repoUnix'; cmake -S sdfx -B build/sdfx-windows-min -G 'Unix Makefiles' -DCMAKE_MAKE_PROGRAM=/usr/bin/make.exe -DCMAKE_TOOLCHAIN_FILE='$toolchainUnix' -DSDFX_TRANSPORT_TYPE=tcp -DBUILD_DAEMON=OFF -DBUILD_SDK=ON -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release && cmake --build build/sdfx-windows-min --target sdfx_sdk -j2"
+try {
+    & $bash -lc $buildCommand
+} finally {
+    $env:TMP = $oldTmp
+    $env:TEMP = $oldTemp
+}
 if ($LASTEXITCODE -ne 0) { throw "Windows SDK build failed." }
 
 $buildSdk = Join-Path $repoRoot "build\sdfx-windows-min\sdk"

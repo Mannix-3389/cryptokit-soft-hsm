@@ -60,6 +60,14 @@ cl /nologo /W4 /utf-8 /Iinclude your_program.c ^
 
 私钥访问控制码允许长度为 0。服务端对持久化 SM2/RSA 非对称密钥和 SM4 对称密钥记录及其索引统一执行 HMAC-SM3 完整性校验。当前仅 SM9 声明返回 `SDR_NOTSUPPORT`。
 
+1.1.5 按 GM/T 0018-2023 的原型调整了 6.8 验证调试接口和
+`SDF_AuthDec`。旧版头文件与本版 DLL 不可混用，客户端需重新编译。
+6.8 中未声明会话句柄的接口由 SDK 在调用期间管理临时会话。
+标准中的 `SDF_ExternalDecrypt_ECC` 将 `uiDataLength` 按值传入，
+本 SDK 将其作为输出缓冲区容量；此原型无法向调用者回传实际明文长度。
+`ECCCipher` 和 `SM9Cipher` 使用规范的 `C[]` 变长尾部，ECC 密文的传输长度
+随之调整；1.1.5 SDK 应配套 1.1.5 服务端使用。
+
 SDK 算法标识遵循 GM/T 0006-2023。SM2 签名、密钥交换、加密分别使用
 `0x00020200`、`0x00020400`、`0x00020800`，SM4-XTS 使用 `0x01000400`。
 SHA-1/224/384/512 是 `SDFX_*` 教学扩展，使用标准预留的自定义杂凑标识范围；
@@ -71,7 +79,7 @@ SHA-1/224/384/512 是 `SDFX_*` 教学扩展，使用标准预留的自定义杂�
 
 ```powershell
 .\scripts\build_windows_sdk.ps1
-.\scripts\package_windows_sdk.ps1 -Version 1.1.4 -Force
+.\scripts\package_windows_sdk.ps1 -Version 1.1.5 -Force
 ```
 
 检查脚本会核对 `sdf.h` 声明的全部 `SDF_*` 导出，并确认 DLL 不依赖 `libwinpthread-1.dll`。打包脚本只按白名单复制上述最小文件，生成 `release/sdfapi-windows-x64-版本.zip` 和新的 `SHA256SUMS`。

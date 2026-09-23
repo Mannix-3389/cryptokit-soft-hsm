@@ -366,7 +366,7 @@ LONG SDF_AuthDec(
     BYTE *pucAad,
     ULONG uiAadLength,
     BYTE *pucAuthData,
-    ULONG uiAuthDataLength, // 规范中为 puiAuthDataLength，疑为笔误
+    ULONG *puiAuthDataLength,
     BYTE *pucEncData,
     ULONG uiEncDataLength,
     BYTE *pucData,
@@ -602,7 +602,6 @@ LONG SDF_DeleteFile(
 
 /* 6.8.2 产生 RSA 非对称密钥对并输出 */
 LONG SDF_GenerateKeyPair_RSA(
-    HANDLE hSessionHandle, // 规范中缺少 hSessionHandle，但调试函数通常需要
     ULONG uiKeyBits,
     RSArefPublicKey *pucPublicKey,
     RSArefPrivateKey *pucPrivateKey
@@ -610,7 +609,6 @@ LONG SDF_GenerateKeyPair_RSA(
 
 /* 6.8.3 产生ECC非对称密钥对并输出 */
 LONG SDF_GenerateKeyPair_ECC(
-    HANDLE hSessionHandle, // 规范中缺少 hSessionHandle
     ULONG uiAlgID,
     ULONG uiKeyBits,
     ECCrefPublicKey *pucPublicKey,
@@ -619,7 +617,6 @@ LONG SDF_GenerateKeyPair_ECC(
 
 /* 6.8.4 外部私钥 RSA 运算 */
 LONG SDF_ExternalPrivateKeyOperation_RSA(
-    HANDLE hSessionHandle, // 规范中缺少 hSessionHandle
     RSArefPrivateKey *pucPrivateKey,
     BYTE *pucDataInput,
     ULONG uiInputLength,
@@ -629,7 +626,6 @@ LONG SDF_ExternalPrivateKeyOperation_RSA(
 
 /* 6.8.5 外部私钥 ECC签名 */
 LONG SDF_ExternalSign_ECC(
-    HANDLE hSessionHandle, // 规范中缺少 hSessionHandle
     ULONG uiAlgID,
     ECCrefPrivateKey *pucPrivateKey,
     BYTE *pucDataInput,
@@ -639,17 +635,15 @@ LONG SDF_ExternalSign_ECC(
 
 /* 6.8.6 外部私钥 ECC 解密 */
 LONG SDF_ExternalDecrypt_ECC(
-    HANDLE hSessionHandle, // 规范中缺少 hSessionHandle
     ULONG uiAlgID,
     ECCrefPrivateKey *pucPrivateKey,
     ECCCipher *pucEncData,
     BYTE *pucData,
-    ULONG *uiDataLength // 规范中为 uiDataLength，应为指针 *puiDataLength
+    ULONG uiDataLength
 );
 
 /* 6.8.7 外部私钥SM9签名 */
 int SDF_ExternalSign_SM9(
-    HANDLE hSessionHandle, // 规范中缺少 hSessionHandle
     SM9SignMasterPublicKey *pSignMastPublicKey,
     SM9SignUserPrivateKey *pSignUserPrivateKey,
     BYTE *pucData,
@@ -659,21 +653,17 @@ int SDF_ExternalSign_SM9(
 
 /* 6.8.8 外部私钥SM9 解密 */
 int SDF_ExternalDecrypt_SM9(
-    HANDLE hSessionHandle, // 规范中缺少 hSessionHandle
     SM9EncUserPrivateKey *pEncUserPrivateKey,
     BYTE *pucUserID,
     ULONG uiUserIDLen,
-    ULONG uiAlgID, // 规范中参数列表缺少此项，但描述中提及
     BYTE *pucIV,
-    SM9Cipher *pEncData, // 规范中参数顺序颠倒
     BYTE *pucData,
-    ULONG *puiDataLength // 规范中为 pEncData, ULONG uiDataLength, SM9Cipher pEncData
-                        // 参照 6.8.6 和 B.2.16 修正了参数列表和顺序
+    ULONG uiDataLength,
+    SM9Cipher *pEncData
 );
 
 /* 6.8.9 外部密钥单包对称加密 */
 LONG SDF_ExternalKeyEncrypt(
-    HANDLE hSessionHandle, // 规范中缺少 hSessionHandle
     ULONG uiAlgID,
     BYTE *pucKey,
     ULONG uiKeyLength,
@@ -687,7 +677,6 @@ LONG SDF_ExternalKeyEncrypt(
 
 /* 6.8.10 外部密钥单包对称解密 */
 LONG SDF_ExternalKeyDecrypt(
-    HANDLE hSessionHandle, // 规范中缺少 hSessionHandle
     ULONG uiAlgID,
     BYTE *pucKey,
     ULONG uiKeyLength,
@@ -744,7 +733,7 @@ int SDF_ExportUserID_SM9(
 int SDF_GenerateEncMasterKeyPair_SM9(
     HANDLE hSessionHandle,
     ULONG uiAlgID,
-    ULONG *uiMasterKeyIndex, // 规范中为 ULONG uiMasterKeyIndex
+    ULONG *uiMasterKeyIndex,
     SM9EncMasterPublicKey *pEncMasterPublicKey
 );
 
@@ -1043,4 +1032,3 @@ LONG SDF_GenerateKeywithEPK_SSL(
 #endif
 
 #endif /* __SDF_H__ */
-

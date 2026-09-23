@@ -122,7 +122,7 @@ std::wstring helper_storage_directory() {
     CreateDirectoryW(root.c_str(), nullptr);
     root += L"\\UKeyAgent";
     CreateDirectoryW(root.c_str(), nullptr);
-    root += L"\\1.1.4";
+    root += L"\\1.1.5";
     CreateDirectoryW(root.c_str(), nullptr);
     return root;
 }
@@ -500,7 +500,7 @@ void handle_client(SOCKET client) {
             respond(client, 204, "No Content", "", request);
         } else if (request.method == "GET" && request.path == "/v1/health") {
             DllArch arch = cfg.dll_path.empty() ? DllArch::Unknown : detect_dll_architecture(cfg.dll_path);
-            std::string body = "{\"ok\":true,\"service\":\"ukey-agent\",\"version\":\"1.1.4\","
+            std::string body = "{\"ok\":true,\"service\":\"ukey-agent\",\"version\":\"1.1.5\","
                 "\"architecture\":\"x64-agent+x86/x64-helper\",\"port\":18088,\"configured\":" +
                 std::string(cfg.dll_path.empty() ? "false" : "true") + ",\"dll_architecture\":\"" +
                 (arch == DllArch::X86 ? "x86" : arch == DllArch::X64 ? "x64" : "unknown") + "\"}";

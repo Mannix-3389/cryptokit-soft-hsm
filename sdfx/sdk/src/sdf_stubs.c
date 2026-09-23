@@ -339,7 +339,7 @@ LONG SDF_AuthDec(
     BYTE *pucAad,
     ULONG uiAadLength,
     BYTE *pucAuthData,
-    ULONG uiAuthDataLength,
+    ULONG *puiAuthDataLength,
     BYTE *pucEncData,
     ULONG uiEncDataLength,
     BYTE *pucData,
@@ -353,7 +353,7 @@ LONG SDF_AuthDec(
     (void)pucAad;
     (void)uiAadLength;
     (void)pucAuthData;
-    (void)uiAuthDataLength;
+    (void)puiAuthDataLength;
     (void)pucEncData;
     (void)uiEncDataLength;
     (void)pucData;
@@ -734,7 +734,6 @@ static LONG sdf_stub_SDF_DeleteFile(
 
 
 LONG SDF_ExternalKeyEncrypt(
-    HANDLE hSessionHandle,
     ULONG uiAlgID,
     BYTE *pucKey,
     ULONG uiKeyLength,
@@ -745,7 +744,6 @@ LONG SDF_ExternalKeyEncrypt(
     BYTE *pucEncData,
     ULONG *puiEncDataLength)
 {
-    (void)hSessionHandle;
     (void)uiAlgID;
     (void)pucKey;
     (void)uiKeyLength;
@@ -761,7 +759,6 @@ LONG SDF_ExternalKeyEncrypt(
 }
 
 LONG SDF_ExternalKeyDecrypt(
-    HANDLE hSessionHandle,
     ULONG uiAlgID,
     BYTE *pucKey,
     ULONG uiKeyLength,
@@ -772,7 +769,6 @@ LONG SDF_ExternalKeyDecrypt(
     BYTE *pucData,
     ULONG *puiDataLength)
 {
-    (void)hSessionHandle;
     (void)uiAlgID;
     (void)pucKey;
     (void)uiKeyLength;

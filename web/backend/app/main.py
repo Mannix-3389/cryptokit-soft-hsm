@@ -37,7 +37,7 @@ from .ukey_auth import (
 
 
 PRODUCT_NAME = "CryptoKit 软件服务器密码机管理平台"
-PRODUCT_VERSION = "1.1.4"
+PRODUCT_VERSION = "1.1.5"
 DATA_ROOT = Path(os.getenv("SDFX_DATA_DIR", "/var/lib/sdfx")).resolve()
 WEB_ROOT = DATA_ROOT / "web"
 STATE_FILE = WEB_ROOT / "state.json"
@@ -811,7 +811,7 @@ class InitializeRequest(BaseModel):
     username: str
     password: PasswordHashInput
     vendor: str = "SDFX Project"
-    device_name: str = "SDFX-1.1.4"
+    device_name: str = "SDFX-1.1.5"
     serial: str = "SW000001"
 
 

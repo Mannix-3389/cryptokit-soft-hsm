@@ -119,7 +119,7 @@ typedef struct DeviceInfo_st
 #define SDFX_SHA512_224             0x00000024   /* identifier reserved; implementation unavailable */
 #define SDFX_SHA512_256             0x00000025   /* identifier reserved; implementation unavailable */
 
-/* Deprecated source-compatibility aliases for pre-1.1.4 teaching programs. */
+/* Deprecated source-compatibility aliases for pre-1.1.5 teaching programs. */
 #define SGD_SHA1                    SDFX_SHA1
 #define SGD_SHA224                  SDFX_SHA224
 #define SGD_SHA384                  SDFX_SHA384
@@ -183,32 +183,21 @@ typedef struct ECCrefPrivateKey_st
 } ECCrefPrivateKey;
 
 /* 5.7 ECC 加密数据结构定义 (ECC Ciphertext Structure Definition) */
+#if defined(_MSC_VER)
+# pragma warning(push)
+# pragma warning(disable: 4200) /* GM/T 0018-2023 specifies BYTE C[] */
+#endif
 typedef struct ECCCipher_st
 {
     BYTE  x[ECCref_MAX_LEN];
     BYTE  y[ECCref_MAX_LEN];
     BYTE  M[32];
     ULONG L;
-    BYTE  C[1]; // 变长密文数据的首字节；分配时追加 L-1 字节
-             // 规范中定义为 BYTE C; 可能是指柔性数组或指针，此处按规范字面定义
-             // 在实际使用中，通常会动态分配 ECCCipher 结构体大小为 (sizeof(ECCCipher_st) - 1 + L)
-             // 或者 C 是一个指针。但规范原文是 BYTE C;
-             // 更安全的做法是将其定义为指针 BYTE *C;
-             // 但为了严格遵循文档，我们保留 BYTE C; 并假定其后跟随L-1字节数据
-             // 
-             // 修正：根据5.7中表7的描述 L是4字节，C是L字节。
-             // 结构体定义中 BYTE C; 后面没有[L]，这在C中通常意味着
-             // 这是一个变长结构体，C代表数据区的开始。
-             // 或者，更可能的是规范在此处省略了指针，或者这是一个拼写错误。
-             // 一个更标准的C定义可能是 BYTE C[1]; (作为变长标记)
-             // 或者 BYTE *C; (但后续函数原型未使用指针的指针)
-             // 
-             // 考虑到函数原型如 SDF_GenerateKeyWithIPK_ECC 使用 ECCCipher *pucKey
-             // 这意味着 pucKey 是一个指向 ECCCipher 结构的指针。
-             // 规范中的 BYTE C; 极有可能是指柔性数组成员 (Flexible Array Member)
-             // 故定义为 BYTE C[0]; 或 BYTE C[]; 可能更合适
-             // 但为保持与文档一致，暂定为 BYTE C; 并注释
+    BYTE  C[];
 } ECCCipher;
+#if defined(_MSC_VER)
+# pragma warning(pop)
+#endif
 
 /* 5.8 ECC 签名数据结构定义 (ECC Signature Structure Definition) */
 typedef struct ECCSignature_st
@@ -277,6 +266,10 @@ typedef struct SM9refEncUserPrivateKey_st
 } SM9EncUserPrivateKey;
 
 /* B.1.6 SM9 加密数据结构 (SM9 Ciphertext Structure) */
+#if defined(_MSC_VER)
+# pragma warning(push)
+# pragma warning(disable: 4200) /* GM/T 0018-2023 specifies BYTE C[] */
+#endif
 typedef struct SM9refCipher_st
 {
     ULONG EncType;
@@ -284,8 +277,11 @@ typedef struct SM9refCipher_st
     BYTE  y[SM9ref_MAX_LEN];
     BYTE  h[32];
     ULONG L;
-    BYTE  C[1]; // 变长密文数据的首字节；分配时追加 L-1 字节
+    BYTE  C[];
 } SM9Cipher;
+#if defined(_MSC_VER)
+# pragma warning(pop)
+#endif
 
 /* B.1.7 SM9 签名数据结构 (SM9 Signature Structure) */
 typedef struct SM9refSignature_st
@@ -312,7 +308,7 @@ typedef struct SM9refEncEnvelopedKey_st
     SM9EncMasterPublicKey encMastPubKey;
     SM9EncMasterPublicKey tmpMastPubKey;
     ULONG               userIDLen;
-    BYTE                userID[256]; // 规范中是1024，但B.10中是256，B.1.9表后定义是256
+    BYTE                userID[256];
     ULONG               keyLen;
     SM9KeyPackage       keyPackage;
 } SM9EncEnvelopedKey;

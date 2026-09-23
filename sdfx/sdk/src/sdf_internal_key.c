@@ -143,13 +143,13 @@ static LONG parse_wrapped_key(const BYTE *response_buffer, ECCCipher *wrapped,
     const sdfx_blob_resp_t *response = (const sdfx_blob_resp_t *)message->data;
     uint32_t data_len = sdfx_ntohl(response->data_length);
     if (data_len < sizeof(ECCCipher) ||
-        data_len > sizeof(ECCCipher) + 31 ||
+        data_len > sizeof(ECCCipher) + 32 ||
         message->header.length < sizeof(*response) + data_len) {
         return SDR_PROTOCOL_ERROR;
     }
     uint32_t cipher_len = sdfx_ntohl(((const ECCCipher *)response->data)->L);
     if (cipher_len == 0 || cipher_len > 32 ||
-        data_len != sizeof(ECCCipher) + cipher_len - 1) {
+        data_len != sizeof(ECCCipher) + cipher_len) {
         return SDR_PROTOCOL_ERROR;
     }
     memcpy(wrapped, response->data, data_len);
@@ -173,7 +173,7 @@ LONG SDF_GenerateKeyWithIPK_ECC(HANDLE hSessionHandle, ULONG uiIPKIndex,
     }
     uint32_t params[4] = {uiIPKIndex, uiKeyBits, 0, 0};
     BYTE response[sizeof(sdfx_message_header_t) + sizeof(sdfx_blob_resp_t) +
-                  sizeof(ECCCipher) + 31];
+                  sizeof(ECCCipher) + 32];
     size_t response_len = 0;
     ret = send_internal_blob(SDFX_CMD_GENERATE_KEY_IPK_ECC, session_id,
                              params, NULL, 0, response, sizeof(response),
@@ -197,7 +197,7 @@ LONG SDF_GenerateKeyWithEPK_ECC(HANDLE hSessionHandle, ULONG uiKeyBits,
     }
     uint32_t params[4] = {uiKeyBits, uiAlgID, 0, 0};
     BYTE response[sizeof(sdfx_message_header_t) + sizeof(sdfx_blob_resp_t) +
-                  sizeof(ECCCipher) + 31];
+                  sizeof(ECCCipher) + 32];
     size_t response_len = 0;
     ret = send_internal_blob(SDFX_CMD_GENERATE_KEY_EPK_ECC, session_id,
                              params, (const BYTE *)pucPublicKey,
@@ -218,8 +218,8 @@ LONG SDF_ImportKeyWithISK_ECC(HANDLE hSessionHandle, ULONG uiISKIndex,
     if (ret != SDR_OK) {
         return ret;
     }
-    size_t cipher_size = sizeof(ECCCipher) + pucKey->L - 1;
-    BYTE cipher_buffer[sizeof(ECCCipher) + 31];
+    size_t cipher_size = sizeof(ECCCipher) + pucKey->L;
+    BYTE cipher_buffer[sizeof(ECCCipher) + 32];
     memcpy(cipher_buffer, pucKey, cipher_size);
     ((ECCCipher *)cipher_buffer)->L = sdfx_htonl(pucKey->L);
 

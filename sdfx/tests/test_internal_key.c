@@ -49,7 +49,7 @@ int main(void)
     ULONG encrypted_len = sizeof(encrypted);
     BYTE decrypted[32];
     ULONG decrypted_len = sizeof(decrypted);
-    BYTE wrapped_storage[sizeof(ECCCipher) + 31];
+    BYTE wrapped_storage[sizeof(ECCCipher) + 32];
     ECCCipher *wrapped = (ECCCipher *)wrapped_storage;
     memset(digest, 0x5a, sizeof(digest));
     memset(&signature, 0, sizeof(signature));

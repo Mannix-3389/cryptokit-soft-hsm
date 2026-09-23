@@ -128,16 +128,16 @@ LONG SDF_ExternalEncrypt_ECC(HANDLE hSessionHandle, ULONG uiAlgID,
     sdfx_external_encrypt_ecc_resp_t *resp =
         (sdfx_external_encrypt_ecc_resp_t *)resp_msg->data;
     ULONG cipher_len = sdfx_ntohl(resp->cipher.L);
-    size_t cipher_size = sizeof(ECCCipher) + cipher_len - 1;
+    size_t cipher_size = sizeof(ECCCipher) + cipher_len;
     if (cipher_len == 0 || cipher_len > 256 ||
-        resp_msg->header.length < sizeof(sdfx_external_encrypt_ecc_resp_t) + cipher_len - 1) {
+        resp_msg->header.length < sizeof(sdfx_external_encrypt_ecc_resp_t) + cipher_len) {
         return SDR_PROTOCOL_ERROR;
     }
     memcpy(pucEncData, &resp->cipher, cipher_size);
     pucEncData->L = cipher_len;
     return SDR_OK;
 }
-LONG SDF_ExternalDecrypt_ECC(HANDLE hSessionHandle, ULONG uiAlgID,
+static LONG external_decrypt_ecc_session(HANDLE hSessionHandle, ULONG uiAlgID,
     ECCrefPrivateKey *pucPrivateKey, ECCCipher *pucEncData,
     BYTE *pucData, ULONG *puiDataLength)
 {
@@ -153,7 +153,7 @@ LONG SDF_ExternalDecrypt_ECC(HANDLE hSessionHandle, ULONG uiAlgID,
     SDF_CHECK_SESSION(hSessionHandle, server_session_id);
 
     ULONG cipher_len = pucEncData->L;
-    size_t req_size = sizeof(sdfx_external_decrypt_ecc_req_t) + cipher_len - 1;
+    size_t req_size = sizeof(sdfx_external_decrypt_ecc_req_t) + cipher_len;
     sdfx_external_decrypt_ecc_req_t *req = malloc(req_size);
     if (req == NULL) {
         return SDR_MEMORY_ERROR;
@@ -161,7 +161,7 @@ LONG SDF_ExternalDecrypt_ECC(HANDLE hSessionHandle, ULONG uiAlgID,
     req->session_handle = sdfx_htonll(server_session_id);
     req->alg_id = sdfx_htonl(uiAlgID);
     memcpy(&req->private_key, pucPrivateKey, sizeof(ECCrefPrivateKey));
-    memcpy(&req->cipher, pucEncData, sizeof(ECCCipher) + cipher_len - 1);
+    memcpy(&req->cipher, pucEncData, sizeof(ECCCipher) + cipher_len);
     req->cipher.L = sdfx_htonl(cipher_len);
 
     BYTE resp_buffer[1024];
@@ -191,7 +191,7 @@ LONG SDF_ExternalDecrypt_ECC(HANDLE hSessionHandle, ULONG uiAlgID,
     *puiDataLength = plaintext_len;
     return SDR_OK;
 }
-LONG SDF_GenerateKeyPair_ECC(HANDLE hSessionHandle, ULONG uiAlgID, ULONG uiKeyBits,
+static LONG generate_keypair_ecc_session(HANDLE hSessionHandle, ULONG uiAlgID, ULONG uiKeyBits,
     ECCrefPublicKey *pucPublicKey, ECCrefPrivateKey *pucPrivateKey)
 {
     SDF_CHECK_PARAM(hSessionHandle != NULL && pucPublicKey != NULL && 
@@ -231,7 +231,7 @@ LONG SDF_GenerateKeyPair_ECC(HANDLE hSessionHandle, ULONG uiAlgID, ULONG uiKeyBi
     return SDR_PROTOCOL_ERROR;
 }
 
-LONG SDF_ExternalSign_ECC(HANDLE hSessionHandle, ULONG uiAlgID,
+static LONG external_sign_ecc_session(HANDLE hSessionHandle, ULONG uiAlgID,
     ECCrefPrivateKey *pucPrivateKey, BYTE *pucData, ULONG uiDataLength,
     ECCSignature *pucSignature)
 {
@@ -344,4 +344,46 @@ LONG SDF_ExternalVerify_ECC(HANDLE hSessionHandle, ULONG uiAlgID,
     
     free(req);
     return ret;
+}
+
+LONG SDF_ExternalDecrypt_ECC(ULONG uiAlgID, ECCrefPrivateKey *pucPrivateKey,
+                             ECCCipher *pucEncData, BYTE *pucData,
+                             ULONG uiDataLength)
+{
+    if (pucPrivateKey == NULL || pucEncData == NULL || pucData == NULL ||
+        uiDataLength == 0) return SDR_INARGERR;
+    HANDLE device, session;
+    LONG ret = sdf_open_temporary_session(&device, &session);
+    if (ret != SDR_OK) return ret;
+    ULONG output_length = uiDataLength;
+    ret = external_decrypt_ecc_session(session, uiAlgID, pucPrivateKey,
+                                       pucEncData, pucData, &output_length);
+    return sdf_close_temporary_session(device, session, ret);
+}
+
+LONG SDF_GenerateKeyPair_ECC(ULONG uiAlgID, ULONG uiKeyBits,
+                             ECCrefPublicKey *pucPublicKey,
+                             ECCrefPrivateKey *pucPrivateKey)
+{
+    if (pucPublicKey == NULL || pucPrivateKey == NULL) return SDR_INARGERR;
+    HANDLE device, session;
+    LONG ret = sdf_open_temporary_session(&device, &session);
+    if (ret != SDR_OK) return ret;
+    ret = generate_keypair_ecc_session(session, uiAlgID, uiKeyBits,
+                                       pucPublicKey, pucPrivateKey);
+    return sdf_close_temporary_session(device, session, ret);
+}
+
+LONG SDF_ExternalSign_ECC(ULONG uiAlgID, ECCrefPrivateKey *pucPrivateKey,
+                          BYTE *pucDataInput, ULONG uiInputLength,
+                          ECCSignature *pucSignature)
+{
+    if (pucPrivateKey == NULL || pucDataInput == NULL || pucSignature == NULL)
+        return SDR_INARGERR;
+    HANDLE device, session;
+    LONG ret = sdf_open_temporary_session(&device, &session);
+    if (ret != SDR_OK) return ret;
+    ret = external_sign_ecc_session(session, uiAlgID, pucPrivateKey,
+                                    pucDataInput, uiInputLength, pucSignature);
+    return sdf_close_temporary_session(device, session, ret);
 }

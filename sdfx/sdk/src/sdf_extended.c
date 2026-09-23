@@ -403,13 +403,14 @@ LONG SDF_AuthEnc(HANDLE hSessionHandle, HANDLE hKeyHandle, ULONG uiAlgID,
 LONG SDF_AuthDec(HANDLE hSessionHandle, HANDLE hKeyHandle, ULONG uiAlgID,
                  BYTE *pucStartVar, ULONG uiStartVarLength,
                  BYTE *pucAad, ULONG uiAadLength,
-                 BYTE *pucAuthData, ULONG uiAuthDataLength,
+                 BYTE *pucAuthData, ULONG *puiAuthDataLength,
                  BYTE *pucEncData, ULONG uiEncDataLength,
                  BYTE *pucData, ULONG *puiDataLength)
 {
+    if (puiAuthDataLength == NULL) return SDR_INARGERR;
     return auth_oneshot(hSessionHandle, hKeyHandle, uiAlgID,
         pucStartVar, uiStartVarLength, pucAad, uiAadLength,
-        pucAuthData, uiAuthDataLength, pucEncData, uiEncDataLength,
+        pucAuthData, *puiAuthDataLength, pucEncData, uiEncDataLength,
         pucData, puiDataLength, NULL, NULL, 1);
 }
 
@@ -541,26 +542,34 @@ static LONG external_crypt(HANDLE session, ULONG alg_id, BYTE *key,
     return copy_extended_output(response, output, output_len);
 }
 
-LONG SDF_ExternalKeyEncrypt(HANDLE hSessionHandle, ULONG uiAlgID,
+LONG SDF_ExternalKeyEncrypt(ULONG uiAlgID,
                             BYTE *pucKey, ULONG uiKeyLength,
                             BYTE *pucIV, ULONG uiIVLength,
                             BYTE *pucData, ULONG uiDataLength,
                             BYTE *pucEncData, ULONG *puiEncDataLength)
 {
-    return external_crypt(hSessionHandle, uiAlgID, pucKey, uiKeyLength,
+    HANDLE device, session;
+    LONG ret = sdf_open_temporary_session(&device, &session);
+    if (ret != SDR_OK) return ret;
+    ret = external_crypt(session, uiAlgID, pucKey, uiKeyLength,
         pucIV, uiIVLength, pucData, uiDataLength, pucEncData,
         puiEncDataLength, 0);
+    return sdf_close_temporary_session(device, session, ret);
 }
 
-LONG SDF_ExternalKeyDecrypt(HANDLE hSessionHandle, ULONG uiAlgID,
+LONG SDF_ExternalKeyDecrypt(ULONG uiAlgID,
                             BYTE *pucKey, ULONG uiKeyLength,
                             BYTE *pucIV, ULONG uiIVLength,
                             BYTE *pucEncData, ULONG uiEncDataLength,
                             BYTE *pucData, ULONG *puiDataLength)
 {
-    return external_crypt(hSessionHandle, uiAlgID, pucKey, uiKeyLength,
+    HANDLE device, session;
+    LONG ret = sdf_open_temporary_session(&device, &session);
+    if (ret != SDR_OK) return ret;
+    ret = external_crypt(session, uiAlgID, pucKey, uiKeyLength,
         pucIV, uiIVLength, pucEncData, uiEncDataLength, pucData,
         puiDataLength, 1);
+    return sdf_close_temporary_session(device, session, ret);
 }
 
 static LONG external_stream_init(HANDLE session, ULONG alg_id, BYTE *key,

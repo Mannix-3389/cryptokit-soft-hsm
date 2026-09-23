@@ -88,7 +88,7 @@ int main(void)
     printf("\n=== SM2 key pair generation test ===\n");
     
     /* Generate SM2 key pair */
-    ret = SDF_GenerateKeyPair_ECC(hSession, SGD_SM2_1, 256, &publicKey, &privateKey);
+    ret = SDF_GenerateKeyPair_ECC(SGD_SM2_1, 256, &publicKey, &privateKey);
     if (ret != SDR_OK) {
         printf("❌ SM2 key pair generation failed: 0x%lx\n", ret);
         goto cleanup;
@@ -103,7 +103,7 @@ int main(void)
     printf("Plaintext length: %lu bytes\n", test_data_len);
     
     /* SM2 public key encryption */
-    BYTE eccCipherBuffer[sizeof(ECCCipher) + 255];
+    BYTE eccCipherBuffer[sizeof(ECCCipher) + 256];
     ECCCipher *eccCipher = (ECCCipher *)eccCipherBuffer;
     ret = SDF_ExternalEncrypt_ECC(hSession, SGD_SM2_3, &publicKey,
                                  (BYTE*)test_data, test_data_len, eccCipher);
@@ -116,8 +116,9 @@ int main(void)
     print_hex("Ciphertext", eccCipher->C, eccCipher->L);
     
     /* SM2 private key decryption */
-    ret = SDF_ExternalDecrypt_ECC(hSession, SGD_SM2_3, &privateKey,
-                                 eccCipher, plaintext, &plaintext_len);
+    plaintext_len = test_data_len;
+    ret = SDF_ExternalDecrypt_ECC(SGD_SM2_3, &privateKey,
+                                 eccCipher, plaintext, plaintext_len);
     if (ret != SDR_OK) {
         printf("❌ SM2 decryption failed: 0x%lx\n", ret);
         goto cleanup;
@@ -146,7 +147,7 @@ int main(void)
     printf("\n=== SM2 signature verification test ===\n");
     
     /* SM2 signature */
-    ret = SDF_ExternalSign_ECC(hSession, SGD_SM2_1, &privateKey,
+    ret = SDF_ExternalSign_ECC(SGD_SM2_1, &privateKey,
                               digest, digest_len, &eccSig);
     if (ret != SDR_OK) {
         printf("❌ SM2 signature failed: 0x%lx\n", ret);
@@ -206,7 +207,7 @@ int main(void)
     for (int i = 0; i < 10; i++) {
         ECCrefPublicKey tempPub;
         ECCrefPrivateKey tempPriv;
-        ret = SDF_GenerateKeyPair_ECC(hSession, SGD_SM2_1, 256, &tempPub, &tempPriv);
+        ret = SDF_GenerateKeyPair_ECC(SGD_SM2_1, 256, &tempPub, &tempPriv);
         if (ret != SDR_OK) {
             printf("❌ Key generation failed #%d: 0x%lx\n", i+1, ret);
             break;

@@ -19,7 +19,7 @@
 /* Device Information */
 static DEVICEINFO g_device_info = {
     .IssuerName = "SDFX Project",
-    .DeviceName = "SDFX-1.1.4",
+    .DeviceName = "SDFX-1.1.5",
     .DeviceSerial = "SW000001",
     .DeviceVersion = 0x00010103,
     .StandardVersion = 0x00020023,
@@ -531,9 +531,9 @@ static int handle_external_decrypt_ecc(daemon_context_t *ctx,
         return SDR_INARGERR;
     }
 
-    BYTE cipher_buffer[sizeof(ECCCipher) + 255];
+    BYTE cipher_buffer[sizeof(ECCCipher) + 256];
     ECCCipher *cipher = (ECCCipher *)cipher_buffer;
-    size_t cipher_size = sizeof(ECCCipher) + cipher_len - 1;
+    size_t cipher_size = sizeof(ECCCipher) + cipher_len;
     memcpy(cipher, &req->cipher, cipher_size);
     cipher->L = cipher_len;
 
@@ -760,7 +760,7 @@ static int handle_blob_command(daemon_context_t *ctx, ULONG cmd,
             ret = internal_key_generate_with_ipk(session, p0, p1, wrapped, 32,
                                                  &output_object);
             if (ret == SDR_OK) {
-                output_len = sizeof(ECCCipher) + wrapped->L - 1;
+                output_len = sizeof(ECCCipher) + wrapped->L;
                 wrapped->L = sdfx_htonl(wrapped->L);
             }
             break;
@@ -775,7 +775,7 @@ static int handle_blob_command(daemon_context_t *ctx, ULONG cmd,
                     (const ECCrefPublicKey *)req->data, p0, wrapped, 32,
                     &output_object);
             if (ret == SDR_OK) {
-                output_len = sizeof(ECCCipher) + wrapped->L - 1;
+                output_len = sizeof(ECCCipher) + wrapped->L;
                 wrapped->L = sdfx_htonl(wrapped->L);
             }
             break;
@@ -785,11 +785,11 @@ static int handle_blob_command(daemon_context_t *ctx, ULONG cmd,
                 ret = SDR_PROTOCOL_ERROR;
                 break;
             }
-            BYTE cipher_buffer[sizeof(ECCCipher) + 31];
+            BYTE cipher_buffer[sizeof(ECCCipher) + 32];
             ECCCipher *wrapped = (ECCCipher *)cipher_buffer;
             uint32_t cipher_len = sdfx_ntohl(((const ECCCipher *)req->data)->L);
             if (cipher_len == 0 || cipher_len > 32 ||
-                data_len != sizeof(ECCCipher) + cipher_len - 1) {
+                data_len != sizeof(ECCCipher) + cipher_len) {
                 ret = SDR_PROTOCOL_ERROR;
                 break;
             }
@@ -904,7 +904,7 @@ static int vpn_wrap_keys(const ECCrefPublicKey *public_key,
 {
     if (public_key == NULL || output == NULL || output_len == NULL)
         return SDR_INARGERR;
-    BYTE temporary[sizeof(ECCCipher) + 63];
+    BYTE temporary[sizeof(ECCCipher) + 64];
     uint32_t material_offset = 0;
     uint32_t output_offset = 0;
     for (uint32_t i = 0; i < count; ++i) {
@@ -915,7 +915,7 @@ static int vpn_wrap_keys(const ECCrefPublicKey *public_key,
             material + material_offset, bits[i] / 8, cipher, bits[i] / 8);
         if (ret != SDR_OK) return ret;
         uint32_t cipher_text_len = cipher->L;
-        uint32_t blob_len = sizeof(ECCCipher) + cipher_text_len - 1;
+        uint32_t blob_len = sizeof(ECCCipher) + cipher_text_len;
         cipher->L = sdfx_htonl(cipher_text_len);
         memcpy(output + output_offset, temporary, blob_len);
         lengths[i] = blob_len;
@@ -1499,7 +1499,6 @@ static int validate_variable_request(ULONG cmd, const BYTE *data, size_t length)
             if (length >= base) {
                 first = sdfx_ntohl(((const sdfx_external_decrypt_ecc_req_t *)data)->cipher.L);
                 if (first == 0 || first > 256) return SDR_INARGERR;
-                first--;
             }
             break;
         case SDFX_CMD_EXTERNAL_SIGN_ECC:
@@ -1694,7 +1693,7 @@ int protocol_handler_process_message(daemon_context_t *ctx,
         case SDFX_CMD_EXTERNAL_ENCRYPT_ECC: {
             const sdfx_external_encrypt_ecc_req_t *req = (const sdfx_external_encrypt_ecc_req_t *)request->data;
             ULONG data_length = sdfx_ntohl(req->data_length);
-            resp_data_size = sizeof(sdfx_external_encrypt_ecc_resp_t) + data_length - 1;
+            resp_data_size = sizeof(sdfx_external_encrypt_ecc_resp_t) + data_length;
             break;
         }
         case SDFX_CMD_EXTERNAL_DECRYPT_ECC: {

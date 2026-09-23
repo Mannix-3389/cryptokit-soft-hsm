@@ -27,20 +27,20 @@ static int test_external_symmetric(HANDLE session)
         BYTE *mode_iv = modes[i] == SGD_SM4_ECB ? NULL : iv;
         ULONG iv_len = mode_iv == NULL ? 0 : sizeof(iv);
         cipher_len = sizeof(cipher);
-        CHECK_OK(SDF_ExternalKeyEncrypt(session, modes[i], key, sizeof(key),
+        CHECK_OK(SDF_ExternalKeyEncrypt(modes[i], key, sizeof(key),
             mode_iv, iv_len, plain, sizeof(plain), cipher, &cipher_len));
         recovered_len = sizeof(recovered);
-        CHECK_OK(SDF_ExternalKeyDecrypt(session, modes[i], key, sizeof(key),
+        CHECK_OK(SDF_ExternalKeyDecrypt(modes[i], key, sizeof(key),
             mode_iv, iv_len, cipher, cipher_len, recovered, &recovered_len));
         if (recovered_len != sizeof(plain) ||
             memcmp(plain, recovered, sizeof(plain)) != 0) return 1;
     }
 
     cipher_len = sizeof(cipher);
-    CHECK_OK(SDF_ExternalKeyEncrypt(session, SGD_SM4_XTS, xts_key,
+    CHECK_OK(SDF_ExternalKeyEncrypt(SGD_SM4_XTS, xts_key,
         sizeof(xts_key), iv, sizeof(iv), plain, 31, cipher, &cipher_len));
     recovered_len = sizeof(recovered);
-    CHECK_OK(SDF_ExternalKeyDecrypt(session, SGD_SM4_XTS, xts_key,
+    CHECK_OK(SDF_ExternalKeyDecrypt(SGD_SM4_XTS, xts_key,
         sizeof(xts_key), iv, sizeof(iv), cipher, cipher_len,
         recovered, &recovered_len));
     if (recovered_len != 31 || memcmp(plain, recovered, 31) != 0) return 1;
@@ -118,7 +118,7 @@ static int test_auth_mode(HANDLE session, HANDLE key, ULONG alg,
         cipher, &cipher_len, tag, &tag_len));
     ULONG recovered_len = sizeof(recovered);
     CHECK_OK(SDF_AuthDec(session, key, alg, iv, iv_len,
-        aad, sizeof(aad) - 1, tag, tag_len, cipher, cipher_len,
+        aad, sizeof(aad) - 1, tag, &tag_len, cipher, cipher_len,
         recovered, &recovered_len));
     if (recovered_len != sizeof(plain) - 1 ||
         memcmp(plain, recovered, recovered_len) != 0) return 1;
@@ -126,7 +126,7 @@ static int test_auth_mode(HANDLE session, HANDLE key, ULONG alg,
     tag[0] ^= 1;
     recovered_len = sizeof(recovered);
     LONG ret = SDF_AuthDec(session, key, alg, iv, iv_len,
-        aad, sizeof(aad) - 1, tag, tag_len, cipher, cipher_len,
+        aad, sizeof(aad) - 1, tag, &tag_len, cipher, cipher_len,
         recovered, &recovered_len);
     tag[0] ^= 1;
     if (ret != SDR_VERIFYERR) return 1;
@@ -157,10 +157,12 @@ static int decrypt_wrapped_key(HANDLE session, ECCrefPrivateKey *private_key,
                                ECCCipher *cipher, ULONG expected_length)
 {
     BYTE plain[64] = {0};
-    ULONG plain_length = sizeof(plain);
-    CHECK_OK(SDF_ExternalDecrypt_ECC(session, SGD_SM2_3, private_key, cipher,
-                                    plain, &plain_length));
-    return plain_length == expected_length ? 0 : 1;
+    (void)session;
+    if (expected_length > sizeof(plain) || cipher->L != expected_length)
+        return 1;
+    CHECK_OK(SDF_ExternalDecrypt_ECC(SGD_SM2_3, private_key, cipher,
+                                    plain, expected_length));
+    return 0;
 }
 
 static int test_vpn_epk(HANDLE session, HANDLE kd, HANDLE ka)
@@ -169,7 +171,7 @@ static int test_vpn_epk(HANDLE session, HANDLE kd, HANDLE ka)
     BYTE protocol[] = {3}, spi[4] = {1,2,3,4};
     ECCrefPublicKey public_key;
     ECCrefPrivateKey private_key;
-    CHECK_OK(SDF_GenerateKeyPair_ECC(session, SGD_SM2_3, 256,
+    CHECK_OK(SDF_GenerateKeyPair_ECC(SGD_SM2_3, 256,
                                     &public_key, &private_key));
 
     BYTE ike_d_buf[sizeof(ECCCipher) + 32] = {0};
@@ -286,14 +288,15 @@ static int test_vpn_and_internal(HANDLE session)
     return 0;
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
     HANDLE device = NULL, session = NULL;
+    int stateless_only = argc == 2 && strcmp(argv[1], "--stateless") == 0;
     CHECK_OK(SDF_OpenDevice(&device));
     CHECK_OK(SDF_OpenSession(device, &session));
     if (test_external_symmetric(session) != 0 ||
         test_external_hmac(session) != 0 ||
-        test_vpn_and_internal(session) != 0) {
+        (!stateless_only && test_vpn_and_internal(session) != 0)) {
         fprintf(stderr, "GM/T 0018 extended integration test failed\n");
         return 1;
     }

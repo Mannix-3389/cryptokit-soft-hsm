@@ -47,7 +47,7 @@ foreach ($obsoleteName in $obsoleteFiles) {
 
 New-Item -ItemType Directory -Force -Path $webDownloadDir | Out-Null
 Copy-Item -LiteralPath (Join-Path $distDir 'ukey-agent.exe') `
-    -Destination (Join-Path $webDownloadDir 'ukey-agent-windows-x64-1.1.4.exe') -Force
+    -Destination (Join-Path $webDownloadDir 'ukey-agent-windows-x64-1.1.5.exe') -Force
 
 Write-Host "单文件构建完成：$(Join-Path $distDir 'ukey-agent.exe')"
-Write-Host "Web 下载文件已更新：$(Join-Path $webDownloadDir 'ukey-agent-windows-x64-1.1.4.exe')"
+Write-Host "Web 下载文件已更新：$(Join-Path $webDownloadDir 'ukey-agent-windows-x64-1.1.5.exe')"

@@ -63,7 +63,7 @@ static LONG copy_cipher_blob(ECCCipher *output, const BYTE *input,
         return SDR_PROTOCOL_ERROR;
     uint32_t cipher_len = sdfx_ntohl(((const ECCCipher *)input)->L);
     if (cipher_len == 0 ||
-        blob_len != sizeof(ECCCipher) + cipher_len - 1)
+        blob_len != sizeof(ECCCipher) + cipher_len)
         return SDR_PROTOCOL_ERROR;
     memcpy(output, input, blob_len);
     output->L = cipher_len;

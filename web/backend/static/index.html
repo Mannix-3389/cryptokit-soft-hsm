@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>CryptoKit 软件服务器密码机管理平台 1.1.4</title>
+  <title>CryptoKit 软件服务器密码机管理平台 1.1.5</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">CK</div>
-        <div><strong>CryptoKit</strong><span>软件服务器密码机 v1.1.4</span></div>
+        <div><strong>CryptoKit</strong><span>软件服务器密码机 v1.1.5</span></div>
       </div>
       <nav id="nav" hidden>
         <button data-page="administrators">管理员管理</button>
@@ -57,7 +57,7 @@
           <p class="muted">首次创建账户时由密码服务生成固定 8 字节随机盐值；浏览器计算 SM3(口令 UTF-8 字节 || 盐值) 后提交，服务端不接收或保存明文口令。</p>
           <div class="split">
             <label>厂商标识<input name="vendor" value="SDFX Project" required maxlength="40"></label>
-            <label>设备名称<input name="device_name" value="SDFX-1.1.4" required maxlength="16"></label>
+            <label>设备名称<input name="device_name" value="SDFX-1.1.5" required maxlength="16"></label>
           </div>
           <label>设备序列号<input name="serial" value="SW000001" required maxlength="16"></label>
 
@@ -84,7 +84,7 @@
           <label>用户名<input name="username" required autocomplete="username"></label>
           <label>登录密码<input name="password" type="password" required autocomplete="current-password"></label>
           <p class="muted">先在浏览器内完成固定盐值 SM3 校验，再进入本机 UKey PIN 窗口。</p>
-          <div class="form-actions"><button class="button primary" type="submit">使用 UKey 登录</button><a class="button ghost" href="/static/downloads/ukey-agent-windows-x64-1.1.4.exe" download>下载 UKey 插件</a></div>
+          <div class="form-actions"><button class="button primary" type="submit">使用 UKey 登录</button><a class="button ghost" href="/static/downloads/ukey-agent-windows-x64-1.1.5.exe" download>下载 UKey 插件</a></div>
         </form>
         </div>
       </section>
@@ -414,7 +414,7 @@
     <div class="form-grid">
       <div class="dialog-head"><h2>未检测到 UKey 插件</h2><button type="button" class="icon-button" data-close>×</button></div>
       <p class="muted">请启动当前电脑上的 CryptoKit UKey 插件，然后重新检测。尚未安装时可直接下载安装包。</p>
-      <div class="dialog-actions"><button type="button" class="button ghost" data-close>稍后处理</button><a class="button ghost" href="/static/downloads/ukey-agent-windows-x64-1.1.4.exe" download>下载插件</a><button id="retry-ukey-agent" type="button" class="button primary">我已启动，重新检测</button></div>
+      <div class="dialog-actions"><button type="button" class="button ghost" data-close>稍后处理</button><a class="button ghost" href="/static/downloads/ukey-agent-windows-x64-1.1.5.exe" download>下载插件</a><button id="retry-ukey-agent" type="button" class="button primary">我已启动，重新检测</button></div>
     </div>
   </dialog>
   <script src="/static/app.js" defer></script>
